@@ -7,19 +7,22 @@
 //  1) Build the program
 //  2) Run the executable generated with the filenames you 
 //     would like to generate outputs for.  For example, 
-//     "Knapsack.cpp ks_4_0 ks_200_0 ks_500_0"
+//     "./TravelingSalesman tsp_5_1 tsp_8_1 tsp_51_1"
 //     would generate output files for the the three listed input files.
 //  3) The output files will match the names of the input files in the same directory, 
 //     but will have "OUTPUT_" before the input file name.  For example, 
-//     "Knapsack.cpp ks_4_0 ks_200_0 ks_500_0"
-//     will generate OUTPUT_ks_4_0, OUTPUT_ks_200_0, OUTPUT_ks_500_0
+//     "./TravelingSalesman tsp_5_1 tsp_8_1 tsp_51_1"
+//     will generate OUTPUT_tsp_5_1, OUTPUT_tsp_8_1, OUTPUT_tsp_51_1
 
 #include <iostream>
 #include <fstream>
 
+#include <vector>
 #include <time.h>
 
 #include "iolib.h"
+#include "lib.h"
+#include "City.h"
 
 // Take arguments from command line
 int main(int argc, char* args[]) {
@@ -46,14 +49,27 @@ int main(int argc, char* args[]) {
         // Assert that the input file successfully opened
         AssertInputFileOpenSuccess(fin.fail(), inputFile);
 
-        // TODO: Map input data to proper data structure
+        // TODO: Map input data to proper data 
+        std::vector<City> city_list;
+        InputMapper(fin, city_list);
 
         // TODO: Generate tour
+        double result = GetTour(city_list);
+
+        std::cout << "File:" << inputFile << "\n    -result=" << result << "\n\n" ;
 
         // Open the output file
         fout.open(outputFile.data());
 
-        // TODO: Output data
+        // Output data
+        fout << result << "\n";
+        std::string output_string = "";
+        for (int i = 0; i < city_list.size(); i++) {
+            fout << city_list[i].Id();
+            fout << " ";
+        }
+        fout << "\n";
+
         // Close the input & output files
         fin.close();
         fout.close();
