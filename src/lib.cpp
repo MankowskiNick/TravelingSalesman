@@ -9,8 +9,8 @@
 #define TIME_MAX 600
 #define START_TEMP_SCALAR 1000
 #define COOLING_RATE 0.999
-#define TEMP_MIN 1
-#define PERCENT_CHANGES 0.1
+#define TEMP_MIN 0.1
+#define PERCENT_CHANGES 0.7
 
 int InputMapper(std::ifstream& fin, std::vector<City>& city_list) {
     
@@ -42,6 +42,48 @@ void Swap(T& obj1, T& obj2) {
     obj2 = temp;
 }
 
+template<typename T>
+int RemoveFromVector(std::vector<T>& vect, T remove_item) {
+    int item_index = -1;
+    int list_size = vect.size();
+    for (int i = 0; i < list_size; i++) {
+        if (vect[i] == remove_item && item_index == -1) {
+            item_index = i;
+            list_size--;
+            for (int j = i; j < vect.size(); j++) {
+                vect[j] = vect[j + 1];
+            }
+            vect.resize(list_size);
+        }
+    }
+    return item_index;
+}
+
+template<typename T>
+int GetMinIndex(std::vector<T>& vect) {
+    int index = 0;
+    T min_result = vect[0];
+
+    for (int i = 0; i < vect.size(); i++) {
+        if (vect[i] < min_result) {
+            index = i;
+            min_result = vect[i];
+        }
+    }
+    return index;
+}
+
+template<typename T>
+bool InsertAtPosition(std::vector<T>& vect, T& add_item, int index) {
+    vect.resize(vect.size() + 1);
+    if (index >= vect.size() || index < 0) throw std::out_of_range ("Out of Range Exception: Insert index is out of range of vector.");
+    for (int i = vect.size() - 2; i >= index; i--) {
+        vect[i + 1] = vect[i];
+    }
+    vect[index] = add_item;
+    return true;
+}
+
 // Swap two random elements in the list of nodes, our "random" change in simulated annealing
 void SwapRandomCities(std::vector<City>& city_list) {
     int swap_node1 = 0;
@@ -51,6 +93,19 @@ void SwapRandomCities(std::vector<City>& city_list) {
         swap_node2 = rand() % city_list.size();
     }
     Swap<City>(city_list[swap_node1], city_list[swap_node2]);
+}
+
+void SpliceRandomCity(std::vector<City>& city_list) {
+    City rand_city;
+    int remove_index = rand() % (city_list.size() - 2);
+    rand_city = city_list[remove_index];
+    RemoveFromVector<City>(city_list, rand_city);
+    int constraint = city_list.size() - remove_index + 1;
+    int random = rand() % constraint;
+
+    int new_index = random + remove_index;
+    InsertAtPosition(city_list, rand_city, new_index);
+    return;
 }
 
 double SumPoints(std::vector<City>& city_list) {
@@ -81,16 +136,16 @@ double SumPoints(std::vector<City>& city_list) {
     return result;
 }
 
-double GetTour(std::vector<City>&  city_list) {
-    //std::random_shuffle(city_list.begin(), city_list.end());
+double Anneal(std::vector<City>& city_list, int cur_num_changes) {
+
+    std::random_shuffle(city_list.begin(), city_list.end());
     double current_best = SumPoints(city_list);
 
     // Simulated Annealing
     // Initialize temperature
     double initial_temp = (START_TEMP_SCALAR * START_TEMP_SCALAR) / double(city_list.size());
     double temp = double(initial_temp);
-
-
+    
     // Start simulated annealing
     int iteration = 1;
     while (temp > TEMP_MIN) {
@@ -98,10 +153,9 @@ double GetTour(std::vector<City>&  city_list) {
         std::vector<City> annealing_list = std::vector<City>(city_list);
 
         // Make a random change
-
-        // Reshuffle all of the possible_colors - maybe we could make a different change
-        for (int i = 0; i < annealing_list.size() * PERCENT_CHANGES; i++) {
-            SwapRandomCities(annealing_list);
+        // Relocate the specified number of cities in the order(in the vector, obviously)
+        for (int i = 0; i < cur_num_changes; i++) {
+            SpliceRandomCity(annealing_list);
         }
 
         double check = SumPoints(annealing_list);
@@ -112,11 +166,35 @@ double GetTour(std::vector<City>&  city_list) {
             current_best = check;
             city_list = std::vector<City>(annealing_list);
         }
-        //temp = initial_temp / double(iteration);
-        temp *= COOLING_RATE;
+        temp = initial_temp / double(iteration);
+        //temp *= COOLING_RATE;
         iteration++;
 
     }
-
     return current_best;
+}
+
+double GetTour(std::vector<City>&  city_list) {
+
+    std::vector<double> result_costs;
+    std::vector< std::vector<City> >  result_tours;
+    for (double i = 0.0f; i < PERCENT_CHANGES; i += 0.01) {
+
+        double cur_result;
+        std::vector<City> cur_tour(city_list);
+
+        int num_changes = cur_tour.size() * i;
+        if (num_changes > 0) {
+            cur_result = Anneal(cur_tour, num_changes);
+        }else {
+            cur_result = SumPoints(cur_tour);
+        }
+
+        result_tours.push_back(cur_tour);
+        result_costs.push_back(cur_result);
+    }
+
+    int result_index = GetMinIndex<double>(result_costs);
+    city_list = result_tours[result_index];
+    return result_costs[result_index];
 }

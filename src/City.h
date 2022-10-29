@@ -6,28 +6,38 @@
 
 class City {
     public:
-
-        City(int initial_id, std::pair<double, double>& initial_coords) {
+        City(int initial_id, std::pair<double, double> initial_coords) {
             id = initial_id;
-            coords = std::make_pair<double, double> (initial_coords.first, initial_coords.second);
+            x = initial_coords.first;
+            y = initial_coords.second;
         }
         
-        City() {
-            std::cout << "ERROR: Object 'City' declared without an id and/or coordinates.\n";
-            assert(false);
-        }
-        
+        City() { }
+    
+        ~City() { }
+
         int Id() {
             return id;
         }
 
         std::pair<double, double> Coords() {
-            return std::make_pair(coords.first, coords.second);
+            return std::make_pair(x, y);
         }
 
+        bool operator==(City city2) {
+            if (Id() == city2.Id()) return true;
+            return false;
+        }
+
+        //City operator=(City city2) {
+            //std::make_pair<double, double>(city.Coords());
+        //    return City(city2.Id(), city2.Coords());
+        //}
+        
     private:
         int id;
-        std::pair<double, double> coords;
+        //std::pair<double, double> coords;
+        double x, y;
 };
 
 #endif
