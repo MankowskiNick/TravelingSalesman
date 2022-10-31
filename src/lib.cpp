@@ -9,7 +9,7 @@
 #define TIME_MAX 600
 #define START_TEMP_SCALAR 1000
 #define COOLING_RATE 0.999
-#define TEMP_MIN 0.1
+#define TEMP_MIN 1
 #define PERCENT_CHANGES 0.7
 
 int InputMapper(std::ifstream& fin, std::vector<City>& city_list) {
