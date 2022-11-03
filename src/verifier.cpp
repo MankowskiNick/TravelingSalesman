@@ -88,7 +88,6 @@ void Verify(string input_filename, string output_filename) {
   cout << "Actual length: " << tour_length;
 }
 
-// TODO: remove input and format argc & argv
 int main(int argc, char* args[]) {
   for (int i = 1; i < argc; i+=2) {    
     std::cout << "Checking file - " << string(args[i]) << "\n";

@@ -9,10 +9,8 @@
 
 #define TIME_MAX 60
 #define START_TEMP_SCALAR 1000
-#define COOLING_RATE 0.999
 #define TEMP_MIN 1
 #define PERCENT_CHANGES 0.2
-#define MAX_NUM_CHANGES 200
 
 int InputMapper(std::ifstream& fin, std::vector<City>& city_list) {
     
@@ -23,9 +21,8 @@ int InputMapper(std::ifstream& fin, std::vector<City>& city_list) {
     // Empty the list of cities(just in case)
     city_list = std::vector<City>();
 
-    // Set up variables we need for looping through
-
-    for (int i = num_cities - 1; i >= 0; i--) {
+    // Add all cities to city_list
+    for (int i = 0; i < num_cities; i++) {
         double x, y;
 
         fin >> x;
@@ -178,7 +175,6 @@ double SumPoints(std::vector<City>& city_list) {
 
 double Anneal(std::vector<City>& city_list, int cur_num_changes) {
 
-    //if (city_list.size() == 8) std::random_shuffle(city_list.begin(), city_list.end());  // maybe remove soon
     double current_best = SumPoints(city_list);
 
     // Simulated Annealing
@@ -207,7 +203,6 @@ double Anneal(std::vector<City>& city_list, int cur_num_changes) {
             city_list = std::vector<City>(annealing_list);
         }
         temp = initial_temp / double(iteration);
-        //temp *= COOLING_RATE;
         iteration++;
 
     }
@@ -218,6 +213,8 @@ double GetTour(std::vector<City>& city_list) {
 
     std::vector<double> result_costs;
     std::vector< std::vector<City> >  result_tours;
+
+    /*
     if (city_list.size() == 8) { // annoying hard coding in n=8 because the heuristic sucks for it
         for (int i = 0; i < city_list.size(); i++) {     
             double cur_result;
@@ -232,6 +229,7 @@ double GetTour(std::vector<City>& city_list) {
         city_list = result_tours[result_index];
         return result_costs[result_index];
     }
+    */
 
     // Get a greedy solution
     double initial_result = GetGreedySolution(city_list);
@@ -242,6 +240,7 @@ double GetTour(std::vector<City>& city_list) {
     // Get pre-annealing time
     time_t pre_time = time(NULL);
 
+    // Anneal, trying a different number of changes each time
     int max_num_changes = int(double(city_list.size()) * PERCENT_CHANGES);
     if (max_num_changes < 1) max_num_changes = 1;
     for (int i = 1; i <= max_num_changes && time(NULL) - pre_time < TIME_MAX; i++) {
@@ -254,7 +253,7 @@ double GetTour(std::vector<City>& city_list) {
         result_costs.push_back(cur_result);
     }
     
-
+    // Go with the best result from annealing
     int result_index = GetMinIndex<double>(result_costs);
     city_list = result_tours[result_index];
     return result_costs[result_index];

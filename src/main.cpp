@@ -49,11 +49,11 @@ int main(int argc, char* args[]) {
         // Assert that the input file successfully opened
         AssertInputFileOpenSuccess(fin.fail(), inputFile);
 
-        // TODO: Map input data to proper data 
+        // Map input data to proper data 
         std::vector<City> city_list;
         InputMapper(fin, city_list);
 
-        // TODO: Generate tour
+        // Generate tour
         double result = GetTour(city_list);
 
         std::cout << "File:" << inputFile << "\n    -result=" << result << "\n\n" ;
