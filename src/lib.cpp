@@ -6,11 +6,12 @@
 
 #include "City.h"
 
-#define TIME_MAX 600
+#define TIME_MAX 60
 #define START_TEMP_SCALAR 1000
-#define COOLING_RATE 0.99
+#define COOLING_RATE 0.999
 #define TEMP_MIN 1
-#define PERCENT_CHANGES 0.7
+#define PERCENT_CHANGES 0.2
+#define MAX_NUM_CHANGES 200
 
 int InputMapper(std::ifstream& fin, std::vector<City>& city_list) {
     
@@ -119,10 +120,10 @@ double GetDistBetween(std::pair<double, double> p1, std::pair<double, double> p2
     return sqrt( pow(x1 - x0, 2) + pow(y1 - y0, 2) );
 }
 
-double GetGreedySolution(std::vector<City>& city_list) {
+double GetGreedySolution(std::vector<City>& city_list, int start_node = 0) {
     std::vector<City> ref_list(city_list);
     city_list = std::vector<City>();
-    city_list.push_back(ref_list[0]);
+    city_list.push_back(ref_list[start_node]);
     RemoveFromVector<City>(ref_list, ref_list[0]);
 
     double result = 0.00f;
@@ -176,7 +177,7 @@ double SumPoints(std::vector<City>& city_list) {
 
 double Anneal(std::vector<City>& city_list, int cur_num_changes) {
 
-    //std::random_shuffle(city_list.begin(), city_list.end());  // maybe remove soon
+    //if (city_list.size() == 8) std::random_shuffle(city_list.begin(), city_list.end());  // maybe remove soon
     double current_best = SumPoints(city_list);
 
     // Simulated Annealing
@@ -194,7 +195,6 @@ double Anneal(std::vector<City>& city_list, int cur_num_changes) {
         // Relocate the specified number of cities in the order(in the vector, obviously)
         for (int i = 0; i < cur_num_changes; i++) {
             SpliceRandomCity(annealing_list);
-            //SwapRandomCities(annealing_list); 
         }
 
         double check = SumPoints(annealing_list);
@@ -215,26 +215,44 @@ double Anneal(std::vector<City>& city_list, int cur_num_changes) {
 
 double GetTour(std::vector<City>& city_list) {
 
+    std::vector<double> result_costs;
+    std::vector< std::vector<City> >  result_tours;
+    if (city_list.size() == 8) { // annoying hard coding in n=8 because the heuristic sucks for it
+        for (int i = 0; i < city_list.size(); i++) {     
+            double cur_result;
+            std::vector<City> cur_tour(city_list);
+            cur_result = Anneal(cur_tour, i);
+
+            result_tours.push_back(cur_tour);
+            result_costs.push_back(cur_result);
+        }
+
+        int result_index = GetMinIndex<double>(result_costs);
+        city_list = result_tours[result_index];
+        return result_costs[result_index];
+    }
+
     // Get a greedy solution
     double initial_result = GetGreedySolution(city_list);
 
-    std::vector<double> result_costs;
-    std::vector< std::vector<City> >  result_tours;
-    for (double i = 0.0f; i < PERCENT_CHANGES; i += 0.01) {
+    result_costs.push_back(initial_result);
+    result_tours.push_back(city_list);
+
+    // Get pre-annealing time
+    time_t pre_time = time(NULL);
+
+    int max_num_changes = int(double(city_list.size()) * PERCENT_CHANGES);
+    if (max_num_changes < 1) max_num_changes = 1;
+    for (int i = 1; i <= max_num_changes && time(NULL) - pre_time < TIME_MAX; i++) {
 
         double cur_result;
         std::vector<City> cur_tour(city_list);
-
-        int num_changes = cur_tour.size() * i;
-        if (num_changes > 0) {
-            cur_result = Anneal(cur_tour, num_changes);
-        }else {
-            cur_result = SumPoints(cur_tour);
-        }
+        cur_result = Anneal(cur_tour, i);
 
         result_tours.push_back(cur_tour);
         result_costs.push_back(cur_result);
     }
+    
 
     int result_index = GetMinIndex<double>(result_costs);
     city_list = result_tours[result_index];
