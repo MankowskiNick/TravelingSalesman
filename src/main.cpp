@@ -1,7 +1,7 @@
 // Nick Mankowski
 // CS 490 - Fall 2022
 // Prof. Sean McCulloch
-// Knapsack
+// Traveling Salesman
 
 // Instructions to run
 //  1) Build the program

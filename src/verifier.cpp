@@ -33,19 +33,12 @@ double tour_dist(const vector<int>& tour){
   return tour_length;
 }
 
-// TODO: remove input and format argc & argv
-
-int main(){
-  cout << "Enter the input file name: ";
-  string input_filename;
-  cin >> input_filename;
+void Verify(string input_filename, string output_filename) {
+  
   ifstream input;
+  ifstream output;
   input.open(input_filename.data());
   assert(input.is_open());
-  cout << "Enter the output file name: ";
-  string output_filename;
-  cin >> output_filename;
-  ifstream output;
   output.open(output_filename.data());
   assert(output.is_open());
   int num_vertices;
@@ -58,7 +51,7 @@ int main(){
     input >> Vertices[i][0];
     input >> Vertices[i][1];
   }
-  cerr << "vertices read" << endl;
+  //cout << "vertices read" << endl;
 
   
 
@@ -93,5 +86,16 @@ int main(){
   // check by hand whether any differences are from roundoff
   cout << "Claimed length : " << claimed_length;
   cout << "Actual length: " << tour_length;
+}
+
+// TODO: remove input and format argc & argv
+int main(int argc, char* args[]) {
+  for (int i = 1; i < argc; i+=2) {    
+    std::cout << "Checking file - " << string(args[i]) << "\n";
+    Verify(string(args[i]), string(args[i + 1]));
+    std::cout << "\n";
+  }
+  std::cout << "Done\n";
+  
   return 0;
 }
