@@ -159,10 +159,19 @@ double GetGreedySolution(std::vector<City>& city_list, int start_node = 0) {
 
 double SumPoints(std::vector<City>& city_list) {
     double result = 0.0f;
-    for (int i = 0; i < city_list.size(); i++) {
+    for (int i = 0; i < city_list.size() - 1; i++) {
        result += GetDistBetween(city_list[i].Coords(), city_list[i + 1].Coords());
     }
-    result += GetDistBetween(city_list[city_list.size() - 1].Coords(), city_list[0].Coords());
+    double x0, y0, x1, y1;
+    std::pair<double, double> first_coords = city_list[0].Coords();
+    x0 = first_coords.first;
+    y0 = first_coords.second;
+        
+    std::pair<double, double> next_coords = city_list[city_list.size() - 1].Coords();
+    x1 = next_coords.first;
+    y1 = next_coords.second;
+
+    result += sqrt( pow(x1 - x0, 2) + pow(y1 - y0, 2) );
     
     return result;
 }
