@@ -28,15 +28,9 @@ class City {
             if (Id() == city2.Id()) return true;
             return false;
         }
-
-        //City operator=(City city2) {
-            //std::make_pair<double, double>(city.Coords());
-        //    return City(city2.Id(), city2.Coords());
-        //}
         
     private:
         int id;
-        //std::pair<double, double> coords;
         double x, y;
 };
 

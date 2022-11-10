@@ -1,7 +1,7 @@
 // Nick Mankowski
 // CS 490 - Fall 2022
 // Prof. Sean McCulloch
-// Traveling Salesman
+// Traveling Salesman Problem
 
 // Instructions to run
 //  1) Build the program
@@ -28,7 +28,7 @@
 int main(int argc, char* args[]) {
 
     // Look at each file listed in the command line arguments(did this so I don't have to keep running again and typing different file names)
-    // Argument 1 is the "./Knapsack" command, so we have to start looking at args[1] to get file names
+    // Argument 1 is the "./TravelingSalesman" command, so we have to start looking at args[1] to get file names
     for (int fileIndex = 1; fileIndex < argc; fileIndex++) {    
 
         // Declare a file input stream & file output stream
@@ -55,13 +55,14 @@ int main(int argc, char* args[]) {
 
         // Generate tour
         double result = GetTour(city_list);
-
+        
+        // Output results
         std::cout << "File:" << inputFile << "\n    -result=" << result << "\n\n" ;
 
         // Open the output file
         fout.open(outputFile.data());
 
-        // Output data
+        // Output data to file
         fout << result << "\n";
         std::string output_string = "";
         for (int i = 0; i < city_list.size(); i++) {

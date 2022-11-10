@@ -12,6 +12,7 @@
 #define TEMP_MIN 1
 #define PERCENT_CHANGES 0.2
 
+// Map input into a vector of cities
 int InputMapper(std::ifstream& fin, std::vector<City>& city_list) {
     
     // Get the number of cities
@@ -34,6 +35,7 @@ int InputMapper(std::ifstream& fin, std::vector<City>& city_list) {
     return num_cities;
 }
 
+// Swap two elements
 template<typename T>
 void Swap(T& obj1, T& obj2) {
     T temp = obj1;
@@ -41,6 +43,7 @@ void Swap(T& obj1, T& obj2) {
     obj2 = temp;
 }
 
+// Remove the given item from the given vector
 template<typename T>
 int RemoveFromVector(std::vector<T>& vect, T remove_item) {
     int item_index = -1;
@@ -58,6 +61,7 @@ int RemoveFromVector(std::vector<T>& vect, T remove_item) {
     return item_index;
 }
 
+// Get the index of the minimum element
 template<typename T>
 int GetMinIndex(std::vector<T>& vect) {
     int index = 0;
@@ -72,6 +76,7 @@ int GetMinIndex(std::vector<T>& vect) {
     return index;
 }
 
+// Insert item into a vector at a given position
 template<typename T>
 bool InsertAtPosition(std::vector<T>& vect, T& add_item, int index) {
     vect.resize(vect.size() + 1);
@@ -94,19 +99,26 @@ void SwapRandomCities(std::vector<City>& city_list) {
     Swap<City>(city_list[swap_node1], city_list[swap_node2]);
 }
 
+// Relocate a random city in the list
 void SpliceRandomCity(std::vector<City>& city_list) {
+
     City rand_city;
+
+    // Pick a random city to remove
     int remove_index = rand() % (city_list.size() - 2);
     rand_city = city_list[remove_index];
+
+    // Remove that city
     RemoveFromVector<City>(city_list, rand_city);
+
+    // Place that city in a new spot somewhere after where it was removed
     int constraint = city_list.size() - remove_index + 1;
     int random = rand() % constraint;
-
     int new_index = random + remove_index;
     InsertAtPosition(city_list, rand_city, new_index);
-    return;
 }
 
+// Get distance between two cities
 double GetDistBetween(std::pair<double, double> p1, std::pair<double, double> p2) {
     double x0, y0, x1, y1;
     
@@ -118,6 +130,7 @@ double GetDistBetween(std::pair<double, double> p1, std::pair<double, double> p2
     return sqrt( pow(x1 - x0, 2) + pow(y1 - y0, 2) );
 }
 
+// Get the 'greedy solution' for the problem
 double GetGreedySolution(std::vector<City>& city_list, int start_node = 0) {
     std::vector<City> ref_list(city_list);
     city_list = std::vector<City>();
@@ -126,13 +139,12 @@ double GetGreedySolution(std::vector<City>& city_list, int start_node = 0) {
 
     double result = 0.00f;
 
-    //int start_city = 0;
-    //int cur_city = start_city;
     int num_iterations = ref_list.size();
     for (int i = 0; i < num_iterations; i++) {
         std::vector<double> possible_dist;
         std::vector<int> possible_index;
-        // Get the cheapest move
+
+        // Try all moves, take the cheapest
         for (int j = 0; j < ref_list.size(); j++) {
             if (city_list[city_list.size() - 1].Id() != ref_list[j].Id()) {
                 possible_dist.push_back(GetDistBetween(city_list[city_list.size() - 1].Coords(), ref_list[j].Coords()));
@@ -154,25 +166,22 @@ double GetGreedySolution(std::vector<City>& city_list, int start_node = 0) {
 
 }
 
+// Sum the distance between the cities in the order of the list
 double SumPoints(std::vector<City>& city_list) {
     double result = 0.0f;
+
+    // Sum distances between cities in order
     for (int i = 0; i < city_list.size() - 1; i++) {
        result += GetDistBetween(city_list[i].Coords(), city_list[i + 1].Coords());
     }
-    double x0, y0, x1, y1;
-    std::pair<double, double> first_coords = city_list[0].Coords();
-    x0 = first_coords.first;
-    y0 = first_coords.second;
-        
-    std::pair<double, double> next_coords = city_list[city_list.size() - 1].Coords();
-    x1 = next_coords.first;
-    y1 = next_coords.second;
 
-    result += sqrt( pow(x1 - x0, 2) + pow(y1 - y0, 2) );
+    // Must include distance back to the starting node
+    result += GetDistBetween(city_list[0].Coords(), city_list[city_list.size() - 1].Coords());
     
     return result;
 }
 
+// Perform simulated annealing
 double Anneal(std::vector<City>& city_list, int cur_num_changes) {
 
     double current_best = SumPoints(city_list);
@@ -209,31 +218,16 @@ double Anneal(std::vector<City>& city_list, int cur_num_changes) {
     return current_best;
 }
 
+// Solve TSP
 double GetTour(std::vector<City>& city_list) {
 
     std::vector<double> result_costs;
     std::vector< std::vector<City> >  result_tours;
 
-    /*
-    if (city_list.size() == 8) { // annoying hard coding in n=8 because the heuristic sucks for it
-        for (int i = 0; i < city_list.size(); i++) {     
-            double cur_result;
-            std::vector<City> cur_tour(city_list);
-            cur_result = Anneal(cur_tour, i);
-
-            result_tours.push_back(cur_tour);
-            result_costs.push_back(cur_result);
-        }
-
-        int result_index = GetMinIndex<double>(result_costs);
-        city_list = result_tours[result_index];
-        return result_costs[result_index];
-    }
-    */
-
     // Get a greedy solution
     double initial_result = GetGreedySolution(city_list);
 
+    // The greedy solution is a possible solution, so add it to our possible results
     result_costs.push_back(initial_result);
     result_tours.push_back(city_list);
 
